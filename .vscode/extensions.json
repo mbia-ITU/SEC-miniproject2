@@ -1,0 +1,12 @@
+{
+    "recommendations": ["ms-python.pylint", 
+                        "ms-python.flake8", 
+                        "ms-python.mypy-type-checker", 
+                        "charliermarsh.ruff", 
+                        "matangover.mypy", 
+                        "esbenp.prettier-vscode", 
+                        "davidanson.vscode-markdownlint",
+                        "streetsidesoftware.code-spell-checker",
+                        "patrykpeszko.vscode-proselint",
+                        "chrischinchilla.vale-vscode"]
+}
