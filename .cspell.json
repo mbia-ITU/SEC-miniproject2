@@ -21,7 +21,8 @@
     "megalinter",
     "Mikkel",
     "Nørbjerg",
-    "oxsecurity"
+    "oxsecurity",
+    "pandoc"
   ],
   "version": "0.2"
 }
