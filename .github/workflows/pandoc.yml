@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: docker://pandoc/core:2.9
         with:
-          args: "report.md -o report.pdf"
+          args: "pandoc -f markdown -t pdf -o report.pdf report.md"
