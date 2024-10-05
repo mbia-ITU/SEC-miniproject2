@@ -2,10 +2,8 @@ name: pdf generation
 
 on: push
 
-
 permissions:
   contents: write
-
 
 jobs:
   convert_via_pandoc:
@@ -13,4 +11,4 @@ jobs:
     steps:
       - uses: docker://pandoc/latex
         with:
-          args: "pandoc -f markdown -t pdf -o report.pdf report.md"
+          args: "-s -f markdown -t pdf -o report.pdf report.md"
