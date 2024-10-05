@@ -15,6 +15,10 @@ on:
       - main
       - master
 
+permissions:
+  contents: read
+  pull-requests: write
+
 # Comment env block if you do not want to apply fixes
 env:
   # Apply linter fixes configuration
@@ -30,6 +34,9 @@ env:
   # If APPLY_FIXES is used, defines if the fixes are directly committed (commit)
   # or posted in a PR (pull_request)
   APPLY_FIXES_MODE: commit
+
+  DISABLE_LINTERS: REPOSITORY_TRIVY
+
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}

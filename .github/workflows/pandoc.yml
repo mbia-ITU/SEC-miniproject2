@@ -2,10 +2,15 @@ name: pdf generation
 
 on: push
 
+
+permissions:
+  contents: write
+
+
 jobs:
   convert_via_pandoc:
     runs-on: ubuntu-22.04
     steps:
-      - uses: docker://pandoc/core:2.9
+      - uses: docker://pandoc/latex
         with:
           args: "pandoc -f markdown -t pdf -o report.pdf report.md"

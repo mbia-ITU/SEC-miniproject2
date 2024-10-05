@@ -22,7 +22,10 @@
     "Mikkel",
     "Nørbjerg",
     "oxsecurity",
-    "pandoc"
+    "pandoc",
+    "stefanzweifel",
+    "TRIVY",
+    "venv"
   ],
   "version": "0.2"
 }
