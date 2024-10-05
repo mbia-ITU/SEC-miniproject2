@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: docker://pandoc/latex
         with:
-          args: "-s -f markdown -t pdf -o report.pdf report.md"
+          args: "-s -f markdown -t pdf -o ./report.pdf ./report.md"
