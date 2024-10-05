@@ -9,8 +9,13 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-22.04
     steps:
-      - name: checkout repo
+      - name: Move to root
         uses: actions/checkout@v4
-      - uses: docker://pandoc/latex
+      - name: Run pandoc
+        uses: docker://pandoc/latex
         with:
           args: "-s -f markdown -t pdf --output=report.pdf report.md"
+      - name: Upload artifact
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: PDF report
