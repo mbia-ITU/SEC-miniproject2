@@ -6,7 +6,5 @@
                         "matangover.mypy", 
                         "esbenp.prettier-vscode", 
                         "davidanson.vscode-markdownlint",
-                        "streetsidesoftware.code-spell-checker",
-                        "patrykpeszko.vscode-proselint",
-                        "chrischinchilla.vale-vscode"]
+                        "streetsidesoftware.code-spell-checker"]
 }
