@@ -14,7 +14,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"time"
 )
 
 var client *http.Client
@@ -27,48 +26,46 @@ var maxdata int
 
 func patientHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		log.Println(port, "/patients POST received")
+		log.Println(port, ": Patient received POST /patients")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Fatal(port, "Error reading body: ", err)
+			log.Fatal(port, ": Error when reading request:", err)
 			w.WriteHeader(400)
 			return
 		}
-
 		patients := &types.Patients{}
 		err = json.Unmarshal(body, patients)
 		if err != nil {
-			log.Fatal(port, "Error unmarshalling: ", err)
+			log.Fatal(port, ": Error unmarshalling:", err)
 			w.WriteHeader(400)
 			return
 		}
 
 		shares := utilities.CreateShares(maxdata, data, patientstotal)
 
-		log.Println(port, "Sending shares")
-
+		log.Println(port, ": Sending shares to patients")
 		for i, share := range shares {
 			if i == patientstotal-1 {
 				break
 			}
-			shareowned := types.Share{Share: share}
-
-			b, err := json.Marshal(shareowned)
+			ownShare := types.Share{
+				Share: share,
+			}
+			b, err := json.Marshal(ownShare)
 			if err != nil {
-				log.Fatal(port, "Error marshalling: ", err)
+				log.Fatal(port, ": Error when marshalling:", err)
 				w.WriteHeader(400)
 				return
 			}
-			url := fmt.Sprintf("http://localhost:%d/shares", patients.PortsList[i])
+			url := fmt.Sprintf("https://localhost:%d/shares", patients.PortsList[i])
 			resp, err := client.Post(url, "string", bytes.NewReader(b))
 			if err != nil {
-				log.Fatal(port, "Error sending share to: ", patients.PortsList[i], " : ", err)
+				log.Fatal(port, ": Error sending share to", patients.PortsList[i], ":", err)
 				w.WriteHeader(400)
 				return
 			}
-			log.Println(port, "Sent share to: ", patients.PortsList[i])
-			log.Println(port, "Recieved response: ", resp.StatusCode)
+			log.Println(port, ": Sent share to, ", patients.PortsList[i], ". Received response code:", resp.StatusCode)
 		}
 
 		recshares = append(recshares, shares[len(shares)-1])
@@ -76,65 +73,68 @@ func patientHandler(w http.ResponseWriter, r *http.Request) {
 		if len(recshares) == patientstotal {
 			sendaggregatedshares()
 		}
+
 		w.WriteHeader(200)
 	}
 }
 
 func sendaggregatedshares() {
-	log.Println(port, "Sending aggregated shares")
+	log.Println(port, ": Computing aggregate share")
 
-	var aggregatedshares int
+	var aggregateShare int
 
 	for _, share := range recshares {
-		aggregatedshares += share
+		aggregateShare = aggregateShare + share
 	}
 
-	log.Println(port, "Aggregated shares: ", aggregatedshares)
+	log.Println(port, ": aggregate share is ", aggregateShare)
 
-	aggregate := types.Share{Share: aggregatedshares}
+	aggregate := types.Share{
+		Share: aggregateShare,
+	}
 
 	b, err := json.Marshal(aggregate)
 	if err != nil {
-		log.Fatal(port, "Error marshalling: ", err)
+		log.Fatal(port, ": Error marshalling aggregate share:", err)
 		return
 	}
 
-	log.Println(port, "Sending aggregated shares: ", aggregatedshares)
-	url := fmt.Sprintf("http://localhost:%d/shares", hosport)
-	resp, err := client.Post(url, "string", bytes.NewReader(b))
+	log.Println(port, ": Sending aggregate share", aggregateShare, "to hospital")
+	url := fmt.Sprintf("https://localhost:%d/shares", hosport)
+	response, err := client.Post(url, "string", bytes.NewReader(b))
 	if err != nil {
-		log.Fatal(port, "Error sending aggregated shares: ", err)
+		log.Fatal(port, ": Error sending aggregate share:", err)
 		return
 	}
-
-	log.Println(port, "Sent aggregated shares, recieved response: ", resp.StatusCode)
+	log.Println(port, ": Sent aggregate share to hospital, received response code", response.StatusCode)
 }
 
 func shareHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		log.Println(port, "/shares POST received")
+		log.Println(port, ": Patient received POST /shares")
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Fatal(port, "Error reading body: ", err)
+			log.Fatal(port, ": Error reading request:", err)
 			w.WriteHeader(400)
 			return
 		}
-
-		othershare := &types.Share{}
-		err = json.Unmarshal(body, othershare)
+		foreignShare := &types.Share{}
+		err = json.Unmarshal(body, foreignShare)
 		if err != nil {
-			log.Fatal(port, "Error unmarshalling: ", err)
+			log.Fatal(port, ": Error unmarshalling share:", err)
 			w.WriteHeader(400)
 			return
 		}
 
-		recshares = append(recshares, othershare.Share)
+		recshares = append(recshares, foreignShare.Share)
 
 		if len(recshares) == patientstotal {
 			sendaggregatedshares()
 		}
+
 		w.WriteHeader(200)
+
 	}
 }
 
@@ -152,53 +152,56 @@ func patserver() {
 }
 
 func main() {
-	var R int
+	var r int
 
-	flag.IntVar(&port, "port", 81, "Port number for patient")
-	flag.IntVar(&hosport, "hospitalport", 80, "Port number for hospital")
-	flag.IntVar(&patientstotal, "t", 3, "Total number of patients")
-	flag.IntVar(&R, "R", 500, "Threshold value")
+	flag.IntVar(&port, "port", 8081, "port for patient")
+	flag.IntVar(&hosport, "h", 8080, "port of the hospital")
+	flag.IntVar(&patientstotal, "t", 3, "the total amount of patients")
+	flag.IntVar(&r, "r", 500, "the max value that the final computation can have")
 
 	flag.Parse()
 
-	maxdata = R / 3
+	maxdata = r / 3
 
-	rand.Seed(time.Now().UnixNano())
 	data = rand.Intn(maxdata)
 
-	log.Println(port, "New patient with data: ", data)
+	log.Println(port, ": New patient with data =", data)
 
 	cert, err := os.ReadFile("server.crt")
 	if err != nil {
 		log.Fatal(err)
 	}
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM(cert)
 
-	certpool := x509.NewCertPool()
-	certpool.AppendCertsFromPEM(cert)
-
-	client = &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: certpool}}}
+	client = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: certPool,
+			},
+		},
+	}
 
 	go patserver()
 
-	log.Println(port, "Patient server started")
+	log.Println(port, ": Patient registering with hospital")
 
-	url := fmt.Sprintf("http://localhost:%d/patient", hosport)
+	url := fmt.Sprintf("https://localhost:%d/patient", hosport)
 
-	patPort := types.Patient{Port: port}
-
-	b, err := json.Marshal(patPort)
-	if err != nil {
-		log.Fatal(port, "Error marshalling: ", err)
-		return
+	ownPort := types.Patient{
+		Port: port,
 	}
 
-	resp, err := client.Post(url, "string", bytes.NewReader(b))
+	b, err := json.Marshal(ownPort)
 	if err != nil {
-		log.Fatal(port, "Error sending patient port to hospital: ", err)
-		return
+		log.Fatal(port, ": Error when marshalling patient:", err)
 	}
 
-	log.Println(port, "Sent patient port to hospital, recieved response: ", resp.StatusCode)
+	response, err := client.Post(url, "string", bytes.NewReader(b))
+	if err != nil {
+		log.Fatal(port, ": Error when regisering with hospital:", err)
+	}
+	log.Println(port, ": Registered with hospital, received response code", response.Status)
 
 	for {
 	}
