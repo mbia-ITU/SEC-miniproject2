@@ -8,7 +8,7 @@
 *.so
 *.dylib
 *.key
-*.ctf
+*.crt
 
 # Test binary, built with `go test -c`
 *.test
