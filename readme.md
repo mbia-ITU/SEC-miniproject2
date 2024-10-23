@@ -22,8 +22,8 @@ First a certificate and key must be generated for the server. This can be done w
 - `openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650 -addext "subjectAltName = DNS:localhost"`
 
 The server can then be started with the following command in different terminals:
-- `go run src/Hospital/hospital.go`
-- `go run src/Patient/patient.go -port=8081`
-- `go run src/Patient/patient.go -port=8082`
-- `go run src/Patient/patient.go -port=8083`
+- `go run .\src\Hospital\hospital.go`
+- `go run .\src\Patient\patients.go -port=8081`
+- `go run .\src\Patient\patients.go -port=8082`
+- `go run .\src\Patient\patients.go -port=8083`
 once three instances of the patient has been started along with an instance of the hospital, then the program shoul run as intended.
